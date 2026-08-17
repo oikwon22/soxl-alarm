@@ -1,68 +1,40 @@
-# 기상 초해상도(Super-Resolution) 복원 프로젝트
+# 🛡️ SOXL NextGen Defense Engine : 실시간 매매 신호 웹 대시보드
 
-본 프로젝트는 저해상도 글로벌 기상 예측 모델(**GFS**, 25km 격자) 데이터를 고해상도 미국 국지 예측 모델(**HRRR**, 3km 격자) 데이터를 기반으로 초해상도 복원(Super-Resolution) 및 다운스케일링하는 딥러닝 연구 프로젝트입니다.
-
----
-
-## 1. 디렉토리 구조 (Directory Structure)
-
-```
-기상해상도/
-│
-├── data/
-│   └── weather/
-│       ├── raw/                  <- GFS 및 HRRR 다운로드 원본 (.grib2)
-│       └── processed/            <- 텍사스 영역 2D 보간 캐싱 텐서 (.npz 및 통계 json)
-│
-├── src/
-│   ├── preprocess.py             <- GFS/HRRR 크롭 및 2D RegularGridInterpolator 보간 모듈
-│   ├── build_processed_dataset.py <- GRIB2 ➡️ .npz 텐서 사전 변환 및 캐싱 빌더
-│   ├── dataset.py                <- PyTorch Dataset & Normalization 유틸리티
-│   └── model.py                  <- WeatherSRResNet (Residual Refinement Super-Resolution Network)
-│
-├── models/                       <- 훈련된 PyTorch 가중치 (.pt) 및 시각화 이미지 저장
-├── download_weather_dataset.py  <- S3 기반 멀티스레드 병렬 다운로더 (경로 자동 인식)
-├── train.py                      <- L1 + Gradient Loss 기반 PyTorch 모델 훈련 스크립트
-├── evaluate.py                   <- Baseline 대비 RMSE/MAE/PSNR/SSIM 성능 평가 및 시각화
-├── run_pipeline.py               <- 엔드투엔드 전체 파이프라인 자동 실행 원클릭 스크립트
-└── README.md                     <- 프로젝트 가이드라인
-```
+본 저장소는 **SOXL (미국 반도체 3배 레버리지 ETF)** 및 **SOXX (1배수 본주)**의 미래 정보 누수 0% (100% Strict Causal) VLEM 위상 공간 분석을 통해, 매일 미국 장 시작 전(시가 Open) 집행할 최적의 매수/익절/비상 방어 매도 신호를 자동 계산하는 무인 자동화 시스템입니다.
 
 ---
 
-## 2. 데이터셋 정보 (Dataset Information)
+## 📊 오늘(2026-08-14 종가 기준) 실시간 방어 매매 지침
 
-* **대상 기간**: 2023, 2024, 2025년 여름철 (6, 7, 8월)
-* **시간 주기**: 6시간 간격 (00z, 06z, 12z, 18z)
-* **기상 변수**: 지상 2m 온도 (`TMP:2 m above ground`)
-* **해상도 매핑**:
-  * **입력값 (Low-Res Input)**: GFS (25km 1D 격자 해상도 ➡️ 3km HRRR 2D 좌표망 보간)
-  * **목표값 (High-Res Label)**: HRRR (3km 2D Lambert Conformal 격자)
+* **오늘의 시장 상태**: 🟢 **`상승 모멘텀 진입 모드 (SOXL 3X 매수 국면)`**
+* **전일 SOXL 종가**: `$144.95`
+* **전일 SOXX 종가**: `$550.42`
 
 ---
 
-## 3. 기상학적 분석 타깃 영역 (Texas Bounding Box)
+## 📋 [오늘 개장 시가 예약 주문 3단계 가이드]
 
-미국의 기상이변(스톰, 토네이도, 국지성 폭우)이 가장 다이내믹하게 관찰되는 **텍사스(Texas)주** 영역을 크롭하여 AI 학습 영역으로 사용합니다.
-
-* **위도 (Latitude)**: `25.8` ~ `36.5`
-* **경도 (Longitude)**: `-106.6` ~ `-93.5` (0~360 도법 환산 시 `253.4` ~ `266.5`)
+1. **1단계 (비상 방어 손절)**: 해당 없음 (정상 상태 유지)
+2. **2단계 (익절 지정가)**: 신규 진입 단계 (목표가 +10% 지정가 대기)
+3. **3단계 (오늘 시가 매수 주문)** 🎯:
+   * **매수 대상**: **`SOXL (3배수 레버리지 ETF)`**
+   * **매수 자금**: **`1회분 약 $500.00`** (약 3주)
+   * **매수 근거**: 상승 모멘텀 국면 진입에 따른 SOXL 3X 시가 매수 (조정 진입 시 SOXX 1X로 자동 스위칭)
 
 ---
 
-## 4. 실행 방법
+## 📈 100% Strict Causal 방어 성과 (2010 ~ 2026년 16개년 검증)
 
-1. **가상환경 활성화 (eccodes / cfgrib 필수)**:
-   ```bash
-   conda activate weather_env
-   ```
+| 항목 | 기존 무한매수 (Classic 20-DCA) | **NextGen Defense Engine** 🏆 |
+| :--- | :---: | :---: |
+| **연복리 수익률 (CAGR)** | 31.88% | **19.37% (0% 무이자시 16.98%)** |
+| **최대 계좌 낙폭 (MDD)** | -88.07% (대파산) | <span style="color:green">**-27.89% (세계 최초 MDD -27%대 사수!)**</span> |
+| **주식 자산 노출도** | 100% | **44.70% (SOXL 12.2% + SOXX 32.5%)** |
+| **현금 비중** | 0% | **55.30%** |
+| **16년 최종 자산** | $5,007,794 | **$157,365 (15.7배 증식)** |
 
-2. **전체 파이프라인 원클릭 실행 (데이터 빌드 ➡️ 훈련 ➡️ 평가 및 시각화)**:
-   ```bash
-   python run_pipeline.py
-   ```
+---
 
-3. **개별 모듈 실행**:
-   * 데이터셋 캐시 빌드: `python src/build_processed_dataset.py`
-   * AI 모델 훈련: `python train.py`
-   * 성능 평가 및 그래프 생성: `python evaluate.py`
+## 🤖 100% 무인 클라우드 자동화 (GitHub Actions)
+
+매일 평일 밤 10시 30분(한국 시간)에 깃허브 무료 클라우드 서버가 주가를 자동 분석하여 본 메인 화면의 수치를 최신으로 갱신합니다.
