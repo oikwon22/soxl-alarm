@@ -2,7 +2,8 @@ name: Daily SOXL Defense Signal & Realtime Web Update
 
 on:
   schedule:
-    - cron: '0 21 * * 1-5'
+    # Runs EVERY 5 MINUTES continuously on GitHub Cloud Servers!
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -83,5 +84,5 @@ with open("README.md", "w", encoding="utf-8") as f: f.write("\n".join(md))
           git config --global user.name "oikwon22-git"
           git config --global user.email "khjjd.family@gmail.com"
           git add README.md
-          git commit -m "Realtime Auto-Update SOXL Defense Signal" || exit 0
+          git commit -m "Realtime Auto-Update SOXL Defense Signal (Every 5 min)" || exit 0
           git push
