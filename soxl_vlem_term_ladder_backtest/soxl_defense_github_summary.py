@@ -1,7 +1,7 @@
 """
 soxl_defense_github_summary.py
 ------------------------------
-Generates a markdown summary for GitHub web display (README.md)
+Generates a clean, concise markdown summary for GitHub web display (README.md)
 """
 
 import math
@@ -88,26 +88,29 @@ def generate_markdown_summary():
     is_phase_bull = (edi[-1] > 0) and (entropy_z[-1] <= 1.2)
     tranche_base = MY_REMAINING_CASH / 20.0
     
-    asset_to_buy = "SOXL (3배수)" if is_phase_bull else "SOXX (1배수)"
+    asset_to_buy = "SOXL (3배수 레버리지 ETF)" if is_phase_bull else "SOXX (1배수 본주)"
     est_shares = int(tranche_base / prior_close_soxl) if is_phase_bull else int(tranche_base / prior_close_soxx)
-    status_str = "상승 모멘텀 진입 모드 (SOXL 3X 매수)" if is_phase_bull else "조정/약세 방어 모드 (SOXX 1X 매수)"
+    status_str = "🟢 상승 모멘텀 진입 모드 (SOXL 3X 매수 국면)" if is_phase_bull else "🛡️ 조정/약세 방어 모드 (SOXX 1X 매수 국면)"
     
     md = []
-    md.append(f"# SOXL NextGen Defense Engine : 오늘({last_date}) 매매 지침\n")
-    md.append(f"### 시장 상태: **{status_str}**\n")
-    md.append(f"- **전일 SOXL 종가**: `${prior_close_soxl:.2f}`")
-    md.append(f"- **전일 SOXX 종가**: `${prior_close_soxx:.2f}`\n")
+    md.append(f"# 📊 오늘({last_date} 종가 기준) 실시간 방어 매매 지침\n")
+    md.append(f"* **오늘의 시장 상태**: {status_str}")
+    md.append(f"* **전일 SOXL 종가**: `${prior_close_soxl:.2f}`")
+    md.append(f"* **전일 SOXX 종가**: `${prior_close_soxx:.2f}`\n")
     md.append(f"---\n")
-    md.append(f"### 오늘 시가 매수 주문 가이드")
-    md.append(f"- **매수 대상**: **{asset_to_buy}**")
-    md.append(f"- **매수 금액**: **약 ${tranche_base:.2f} (약 {est_shares}주)**")
-    md.append(f"- **매수 방식**: 오늘 장 시작 시가(Open)로 예약 주문\n")
+    md.append(f"### 📋 [오늘 개장 시가 예약 주문 3단계 가이드]\n")
+    md.append(f"1. **1단계 (비상 방어 손절)**: 해당 없음 (정상 상태 유지)")
+    md.append(f"2. **2단계 (익절 지정가)**: 신규 진입 단계 (목표가 +10% 지정가 대기)")
+    md.append(f"3. **3단계 (오늘 시가 매수 주문)** 🎯:")
+    md.append(f"   * **매수 대상**: {asset_to_buy}")
+    md.append(f"   * **매수 자금**: 1회분 약 ${tranche_base:.2f} (약 {est_shares}주)")
+    md.append(f"   * **매수 근거**: 상승 모멘텀 국면 진입에 따른 SOXL 3X 시가 매수 (조정 진입 시 SOXX 1X로 자동 스위칭)\n")
     
     content = "\n".join(md)
     with open("README.md", "w", encoding="utf-8") as f:
         f.write(content)
         
-    print("[성공] README.md 생성 완료!")
+    print("[성공] 깔끔한 README.md 업데이트 완료!")
 
 if __name__ == "__main__":
     generate_markdown_summary()
