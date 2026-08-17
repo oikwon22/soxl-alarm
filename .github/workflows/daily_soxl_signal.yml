@@ -2,9 +2,8 @@ name: Daily SOXL Defense Signal & Realtime Web Update
 
 on:
   schedule:
-    # Daily Auto-Run at 21:00 UTC (13:00 EST / 22:30 KST)
     - cron: '0 21 * * 1-5'
-  workflow_dispatch: # Enables REALTIME ON-DEMAND EXECUTION anytime via web button!
+  workflow_dispatch:
 
 jobs:
   update-realtime-signal:
@@ -23,9 +22,61 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy pandas yfinance
 
-      - name: Calculate Realtime SOXL Defense Signal
+      - name: Calculate and Update README
         run: |
-          python soxl_vlem_term_ladder_backtest/soxl_defense_github_summary.py
+          python -c '
+import numpy as np, pandas as pd, yfinance as yf
+soxl = yf.download("SOXL", period="1y", interval="1d", progress=False)
+soxx = yf.download("SOXX", period="1y", interval="1d", progress=False)
+if isinstance(soxl.columns, pd.MultiIndex): soxl.columns = soxl.columns.get_level_values(0)
+if isinstance(soxx.columns, pd.MultiIndex): soxx.columns = soxx.columns.get_level_values(0)
+df = pd.DataFrame({"date": soxl.dropna().index, "soxl_close": soxl.dropna()["Close"].values, "soxl_volume": soxl.dropna()["Volume"].values})
+soxx_map = {d: c for d, c in zip(soxx.dropna().index, soxx.dropna()["Close"].values)}
+df["soxx_close"] = df["date"].map(soxx_map)
+df = df.dropna().reset_index(drop=True)
+close_soxl = df["soxl_close"].values
+volume_soxl = df["soxl_volume"].values
+N = len(close_soxl)
+ret = np.zeros(N); ret[1:] = np.diff(close_soxl) / (close_soxl[:-1] + 1e-12)
+vol_ma = pd.Series(volume_soxl).rolling(20, min_periods=1).mean().values
+norm_vol = np.clip(volume_soxl / (vol_ma + 1e-8), 0.1, 5.0)
+edi_raw = ret * np.log1p(norm_vol)
+alpha = 2.0 / 6.0
+edi = np.full(N, np.nan); edi[0] = edi_raw[0]
+for i in range(1, N): edi[i] = alpha * edi_raw[i] + (1.0 - alpha) * edi[i-1]
+entropy = np.full(N, np.nan)
+for i in range(14, N):
+    sub = ret[i-13:i+1]
+    hist, _ = np.histogram(sub, bins=10, range=(-0.10, 0.10))
+    p = hist / (np.sum(hist) + 1e-12); p = p[p > 0]
+    entropy[i] = -np.sum(p * np.log2(p + 1e-12))
+entropy_ma = pd.Series(entropy).rolling(20, min_periods=1).mean().values
+entropy_std = pd.Series(entropy).rolling(20, min_periods=1).std().values + 1e-6
+entropy_z = (entropy - entropy_ma) / entropy_std
+last_date = df["date"].iloc[-1].strftime("%Y-%m-%d")
+prior_close_soxl = df["soxl_close"].iloc[-1]
+prior_close_soxx = df["soxx_close"].iloc[-1]
+is_phase_bull = (edi[-1] > 0) and (entropy_z[-1] <= 1.2)
+tranche_base = 500.0
+asset_to_buy = "SOXL (3배수 레버리지 ETF)" if is_phase_bull else "SOXX (1배수 본주)"
+est_shares = int(tranche_base / prior_close_soxl) if is_phase_bull else int(tranche_base / prior_close_soxx)
+status_str = "🟢 상승 모멘텀 진입 모드 (SOXL 3X 매수 국면)" if is_phase_bull else "🛡️ 조정/약세 방어 모드 (SOXX 1X 매수 국면)"
+md = [
+    f"# 📊 오늘({last_date} 종가 기준) 실시간 방어 매매 지침\n",
+    f"* **오늘의 시장 상태**: {status_str}",
+    f"* **전일 SOXL 종가**: `${prior_close_soxl:.2f}`",
+    f"* **전일 SOXX 종가**: `${prior_close_soxx:.2f}`\n",
+    f"---\n",
+    f"### 📋 [오늘 개장 시가 예약 주문 3단계 가이드]\n",
+    f"1. **1단계 (비상 방어 손절)**: 해당 없음 (정상 상태 유지)",
+    f"2. **2단계 (익절 지정가)**: 신규 진입 단계 (목표가 +10% 지정가 대기)",
+    f"3. **3단계 (오늘 시가 매수 주문)** 🎯:",
+    f"   * **매수 대상**: {asset_to_buy}",
+    f"   * **매수 자금**: 1회분 약 ${tranche_base:.2f} (약 {est_shares}주)",
+    f"   * **매수 근거**: 상승 모멘텀 국면 진입에 따른 SOXL 3X 시가 매수 (조정 진입 시 SOXX 1X로 자동 스위칭)\n"
+]
+with open("README.md", "w", encoding="utf-8") as f: f.write("\n".join(md))
+'
 
       - name: Push Updated Signal to README
         run: |
